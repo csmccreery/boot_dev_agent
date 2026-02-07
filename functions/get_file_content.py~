@@ -1,0 +1,20 @@
+from pathlib import Path
+from .utils.validate import *
+
+def get_file_content(working_directory, file_path):
+    validation, error = validate_file(working_directory, file_path)
+
+    if validation:
+        with open(file_path, 'r') as f:
+            content = f.read(10000)
+
+            # After reading the first MAX_CHARS...
+            if f.read(1):
+                content += f'[...File "{file_path}" truncated at {MAX_CHARS} characters]'
+
+            return content
+
+    else:
+        return error
+                
+            

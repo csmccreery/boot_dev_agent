@@ -1,0 +1,11 @@
+from utils.path_manager import PathManager
+
+def write_file(working_directory, file_path, content) -> None:
+    manager = PathManager(working_directory, file_path)
+
+    path_error = manager.validate_file()
+
+    if not path_error:
+        
+    else:
+        return path_error

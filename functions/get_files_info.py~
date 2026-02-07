@@ -1,0 +1,24 @@
+from pathlib import Path
+from os.path import getsize
+from .utils. import *
+
+
+def get_files_directory(working_directory, directory="."):
+
+    validation, error = validate_dir(working_directory, directory)
+
+    if validation:
+        for file in .iterdir():
+            size = getsize(file) 
+            is_dir = file.is_dir()
+            print(f"{file}: file_size={size}, is_dir={is_dir}")
+    else:
+        return error
+
+        
+            
+    
+
+    
+
+    
