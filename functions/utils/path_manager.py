@@ -1,4 +1,5 @@
 from pathlib import Path
+from os import makedirs
 from os.path import getsize
 
 class PathManager:
@@ -37,6 +38,15 @@ class PathManager:
 
         if not self.target_path.exists():
             return f"Error: No such file or directory {self.target_path}"
+
+        if not self.common_path == self.absolute_working_dir:
+            return f"Error: Cannot list '{self.target_path}' as it is outside the permitted working directory"
+
+        return None
+
+    def validate_write(self):
+        if self.target_path.is_dir():
+            return f"Error: '{self.target_path}' is a directory"
 
         if not self.common_path == self.absolute_working_dir:
             return f"Error: Cannot list '{self.target_path}' as it is outside the permitted working directory"
