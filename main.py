@@ -3,13 +3,21 @@ import argparse
 from dotenv import load_dotenv
 from google import genai
 from google.genai import types
+from system_prompt import agent_system_instruction
 
+try:
+    load_dotenv()
+    api_key = os.environ.get("GEMINI_API_KEY")
+    print("Success: Loaded API key to environment variable")
+except Exception as e:
+    print(f"Error: Unable to load .env variables: {e}")
 
-load_dotenv()
-api_key = os.environ.get("GEMINI_API_KEY")
-client = genai.Client(api_key=api_key)
-
-
+try:
+    print(api_key)
+    client = genai.Client(api_key=api_key)
+except Exception as e:
+    print(f"Error: Unable to assign client {e}")
+    
 def main():
 
     parser = argparse.ArgumentParser(description="Chatbot")
@@ -19,10 +27,12 @@ def main():
 
     messages = [types.Content(role="user", parts=[types.Part(text=args.user_prompt)])]
 
+    print("Starting agent call")
     response = client.models.generate_content(
-        model="gemini-2.5-flash",
+        model="gemini-3-flash-preview",
         contents=messages
     )
+    print("agent call complete: printing results")
 
     if response.usage_metadata is not None:
         prompt_tokens = response.usage_metadata.prompt_token_count

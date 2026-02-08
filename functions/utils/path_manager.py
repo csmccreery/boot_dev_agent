@@ -5,6 +5,7 @@ from os.path import getsize
 class PathManager:
     def __init__(self, working_dir, path):
         self.absolute_working_dir = Path(working_dir).absolute()
+        self.path = path
         self.target_path = (self.absolute_working_dir / path).resolve()
         self.common_path = self.get_common_path()
 
@@ -22,33 +23,48 @@ class PathManager:
 
     def validate_dir(self):
         if not self.target_path.is_dir():
-            return f"Error: '{self.target_path}' is not a directory"
+            return f"Error: '{self.path}' is not a directory"
 
         if not self.target_path.exists():
-            return f"Error: No such file or directory {self.target_path}"
+            return f"Error: No such file or directory {self.path}"
 
         if not self.common_path == self.absolute_working_dir:
-            return f"Error: Cannot list '{self.target_path}' as it is outside the permitted working directory"
+            return f"Error: Cannot list '{self.path}' as it is outside the permitted working directory"
 
         return None
 
     def validate_file(self):
         if self.target_path.is_dir():
-            return f"Error: '{self.target_path}' is a directory"
+            return f"Error: '{self.path}' is a directory"
 
         if not self.target_path.exists():
-            return f"Error: No such file or directory {self.target_path}"
+            return f"Error: No such file or directory {self.path}"
 
         if not self.common_path == self.absolute_working_dir:
-            return f"Error: Cannot list '{self.target_path}' as it is outside the permitted working directory"
+            return f"Error: Cannot list '{self.path}' as it is outside the permitted working directory"
 
         return None
 
     def validate_write(self):
         if self.target_path.is_dir():
-            return f"Error: '{self.target_path}' is a directory"
+            return f"Error: '{self.path}' is a directory"
 
         if not self.common_path == self.absolute_working_dir:
-            return f"Error: Cannot list '{self.target_path}' as it is outside the permitted working directory"
+            return f"Error: Cannot write to '{self.path}' as it is outside the permitted working directory"
+
+        return None
+
+    def validate_py(self):
+        if self.target_path.is_dir():
+            return f'Error: "{self.path}" is a directory'
+
+        if not self.target_path.exists():
+            return f'Error: "{self.path}" does not exist'
+
+        if not self.target_path.suffix == '.py':
+            return f'Error: "{self.path}" is not a Python file'
+
+        if not self.common_path == self.absolute_working_dir:
+            return f'Error: Cannot execute "{self.path}" as it is outside the permitted working directory'
 
         return None
