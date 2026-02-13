@@ -18,6 +18,9 @@ Run 'example.py' -> run_python_file()
 :IMPORTANT:
 
 If the prompt contains the word 'run' that means you're running a python file.
+If the prompt containts the word 'contents' it wants you to read the text of a file *into* stdout
+If the prompt contains the word "list" it wants you to list the contents of a directory
+If the prompt contains the word "write" it wants you to write into a file.
 
 All paths you provide should be relative to the working directory. You do not need to specify the working directory in your function calls as it is automatically injected for security reasons.
 """

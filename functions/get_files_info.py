@@ -24,10 +24,12 @@ def get_files_info(working_directory, directory="."):
     path_error = manager.validate_dir()
 
     if not path_error:
+        result = ""
         for file in manager.target_path.iterdir():
             size = getsize(file) 
             is_dir = file.is_dir()
-            print(f"{file}: file_size={size}, is_dir={is_dir}")
+            result += f"{file}: file_size={size}, is_dir={is_dir}\n"
+        return result
     else:
         return path_error
 

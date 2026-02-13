@@ -62,72 +62,90 @@ def call_function(function_call, verbose=False):
             )
         ],
     )
-    
-def main():
 
+
+def create_parser():
     parser = argparse.ArgumentParser(description="Chatbot")
     parser.add_argument("user_prompt", type=str, help="User prompt")
     parser.add_argument("--verbose", action="store_true", help="Enable verbose output")
     args = parser.parse_args()
+    return args
 
+
+def main():
+    args = create_parser()
     messages = [types.Content(role="user", parts=[types.Part(text=args.user_prompt)])]
 
-    function_responses = []
 
-    if args.verbose:
-        print("Starting agent call")
-        response = client.models.generate_content(
-            model="gemini-3-flash-preview",
-            contents=messages,
-            config=types.GenerateContentConfig(system_instruction=agent_system_instruction),
-        )
-        print("agent call complete: printing results")
-    else:
-        response = client.models.generate_content(
-            model="gemini-3-flash-preview",
-            contents=messages,
-            config=types.GenerateContentConfig(
-                system_instruction=agent_system_instruction,
-                tools=[available_functions]
-            ),
-        )
+    for _ in range(20):
+        function_responses = []
 
-    if response.usage_metadata is not None:
-        prompt_tokens = response.usage_metadata.prompt_token_count
-        response_tokens = response.usage_metadata.candidates_token_count
-    else:
-        raise RuntimeError("API Call failed, no usage metadata present")
+        if args.verbose:
+            print("Starting agent call")
+            response = client.models.generate_content(
+                model="gemini-2.5-flash",
+                contents=messages,
+                config=types.GenerateContentConfig(
+                    system_instruction=agent_system_instruction,
+                    tools=[available_functions]
+                ),
+            )
+            print("agent call complete: printing results")
+        else:
+            response = client.models.generate_content(
+                model="gemini-2.5-flash",
+                contents=messages,
+                config=types.GenerateContentConfig(
+                    system_instruction=agent_system_instruction,
+                    tools=[available_functions]
+                ),
+            )
 
-    if args.verbose:
-        print(f"User prompt: {args.user_prompt}")
-        print(f"Prompt tokens: {prompt_tokens}")
-        print(f"Response tokens: {response_tokens}")
+        if response.candidates:
+            messages.append(response.candidates[0].content)
 
-    if response.function_calls:
-        for function_call in response.function_calls:
-            result = call_function(function_call, args.verbose)
+        if response.usage_metadata is not None:
+            prompt_tokens = response.usage_metadata.prompt_token_count
+            response_tokens = response.usage_metadata.candidates_token_count
+        else:
+            raise RuntimeError("API Call failed, no usage metadata present")
 
-            if not result.parts:
-                raise Exception("Error: Function response has no 'parts' field")
-            else:
-                result_parts = result.parts
-            
-            if not result_parts[0].function_response:
-                raise Exception("Error: Function doesn't contain response")
-            else:
-                result_parts_response = result_parts[0].function_response
+        if args.verbose:
+            print(f"User prompt: {args.user_prompt}")
+            print(f"Prompt tokens: {prompt_tokens}")
+            print(f"Response tokens: {response_tokens}")
 
-            if not result_parts_response.response:
-                raise Exception("Error: Function response contains no content")
+        if response.function_calls:
+            for function_call in response.function_calls:
+                result = call_function(function_call, args.verbose)
 
-            function_responses.append(result_parts[0])
+                if not result.parts:
+                    raise Exception("Error: Function response has no 'parts' field")
+                else:
+                    result_parts = result.parts
 
-            if verbose:
-                print(f"-> {function_call_result.parts[0].function_response.response}")
-    else:
-        print(response.text)
+                if not result_parts[0].function_response:
+                    raise Exception("Error: Function doesn't contain response")
+                else:
+                    result_parts_response = result_parts[0].function_response
 
-    print(function_responses)
+                if not result_parts_response.response:
+                    raise Exception("Error: Function response contains no content")
+
+                function_responses.append(result_parts[0])
+
+                if args.verbose:
+                    print(f"-> {result_parts[0].function_response.response}")
+
+            messages.append(types.Content(role="tool", parts=function_responses))
+        else:
+            print(response.text)
+            break
+
+
+        if _ == 19:
+            print("Model failed to arrive at a conclusion")
+            exit(1)
 
 
 if __name__ == "__main__":
